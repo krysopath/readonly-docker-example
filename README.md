@@ -1,7 +1,8 @@
 # run container processes as random user
 
-If you still own the randoms user group, then you can
-use that to allow writes.
+If you have to run processes as random user and read-only enabled, then you can
+use this example configuration to allow writes, while the container filesystem
+is read only.
 
 demo:
 ```
@@ -108,4 +109,4 @@ drwxrwxr-x 4  1000 1000 4096 Mär 19 03:32 ..
 Such configuration allows containers to run read-only while using a volume as
 spooling directory, for common write operations. This also allows to put
 configuration files that got generated into this volume; That can help with
-pure docker in certain situations.
+pure docker in certain situations, like openshift clusters.
