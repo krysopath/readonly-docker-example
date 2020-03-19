@@ -4,12 +4,10 @@ If you have to run processes as random user and read-only enabled, then you can
 use this example configuration to allow writes, while the container filesystem
 is read only.
 
-demo:
-```
-make read-only
-```
+## demo
 
-see this:
+> see this:
+
 ```
 $ make read-only
 docker stop service-a service-b
@@ -68,8 +66,11 @@ test it!
 
 ```
 
+> To run this yourself your need GNU make and docker.
 
-Confirm this
+
+
+## Confirm this
 ```
 $ tree volume/
 volume/
@@ -102,7 +103,6 @@ total 12
 drwxrwxr-x 2 16137 1337 4096 Mär 19 03:32 .
 drwxrwxr-x 4  1000 1000 4096 Mär 19 03:32 ..
 -rw-r--r-- 1 16137 1337 3920 Mär 19 03:34 success
-
 ```
 
 
@@ -110,3 +110,82 @@ Such configuration allows containers to run read-only while using a volume as
 spooling directory, for common write operations. This also allows to put
 configuration files that got generated into this volume; That can help with
 pure docker in certain situations, like openshift clusters.
+
+
+## more details
+
+first, create volume structure and set group rwx perms for good measures:
+```
+mkdir -p volume/service-{a,b}
+sudo chmod -R g=rwx ./volume
+```
+
+to build:
+```
+docker build -t ro:latest .
+```
+
+you can run it with:
+```
+docker run --name ro-test -it --rm ro:latest
+```
+It should `just work`!
+
+> You can confirm that by checking `docker logs ro-test`
+
+Output is like:
+```
+[...]
+work-by:4547:1337:/volume:Thu Mar 19 03:01:30 UTC 2020
+[...]
+```
+
+### read-only challenge
+you can run a read-only challenge with:
+```
+docker run --read-only --name ro-test -it --rm ro:latest
+```
+It should not `just work`!
+
+> You can confirm that by checking `docker logs ro-test`
+
+
+### volumes to the rescue
+
+
+This chooses a random number and uses that for docker uid:
+```
+rand_uid=$RANDOM
+chown -R $rand_uid:1337 ./volume/service-a
+docker run \
+    -u $rand_uid:1337 \
+    --workdir /volume \
+    --name service-a \
+    --rm \
+    --read-only \
+    -d \
+    -v $(pwd)/volume/service-a:/volume:rw ro:latest
+```
+
+Run the second service:
+
+```
+rand_uid=$RANDOM
+chown -R $rand_uid:1337 ./volume/service-b
+docker run \
+    -u $rand_uid:1337 \
+    --workdir /volume \
+    --name service-b \
+    --rm \
+    --read-only \
+    -d \
+    -v $(pwd)/volume/service-b:/volume:rw ro:latest
+```
+
+And confirm stuff works out intended.
+
+to cleanup, run:
+```
+docker stop service-a service-b
+sudo rm -rf ./volume
+```
