@@ -147,7 +147,12 @@ docker run --read-only --name ro-test -it --rm ro:latest
 ```
 It should not `just work`!
 
-> You can confirm that by checking `docker logs ro-test`
+Instead:
+```
+tee: /volume/success: Read-only file system
+work-by:1337:1337:/volume:Thu Mar 19 03:09:58 UTC 2020
+```
+> Note: this is due to --read-only and despite the current users uid is set and the permission bits for that file set to allow writing.
 
 
 ### volumes to the rescue
