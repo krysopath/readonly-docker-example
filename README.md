@@ -109,7 +109,11 @@ drwxrwxr-x 4  1000 1000 4096 Mär 19 03:32 ..
 Such configuration allows containers to run read-only while using a volume as
 spooling directory, for common write operations. This also allows to put
 configuration files that got generated into this volume; That can help with
-pure docker in certain situations, like openshift clusters.
+pure docker in certain situations, but can also be used as generic pattern for
+other volume systems. Services A/B can set the permissions of their own
+subdirectory, when the volume mount allows this. This secures interservice file
+sharing. Which generally is enabled by controlling the group id of the
+processes in the containers.
 
 
 ## more details
